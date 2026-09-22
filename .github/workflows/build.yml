@@ -8,50 +8,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Build APK with Buildozer
+        uses: ArtemSBulgakov/buildozer-action@v2
         with:
-          python-version: '3.10'
-      
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential git zip unzip \
-            openjdk-17-jdk \
-            autoconf libtool pkg-config \
-            zlib1g-dev libncurses5-dev libncursesw5-dev \
-            libtinfo5 cmake libffi-dev libssl-dev \
-            ccache python3-venv
-      
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install --user buildozer cython==0.29.33
-      
-      - name: Принять лицензии Android SDK
-        run: |
-          export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
-          mkdir -p $ANDROID_HOME/cmdline-tools
-          # Скачиваем cmdline-tools
-          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
-          unzip -q cmdline-tools.zip -d $ANDROID_HOME/cmdline-tools
-          mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
-          # Принимаем ВСЕ лицензии
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME --licenses || true
-      
-      - name: Build APK
-        env:
-          ANDROID_HOME: /home/runner/.buildozer/android/platform/android-sdk
-          BUILDOZER_WARN_ON_ROOT: 0
-        run: |
-          export PATH=$PATH:/home/runner/.local/bin
-          buildozer android debug
-        continue-on-error: false
+          workdir: .
+          command: buildozer android debug
+          buildozer-branch: master
       
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: bouncegame-apk
           path: bin/*.apk
-          if-no-files-found: error
