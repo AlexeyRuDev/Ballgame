@@ -1,1 +1,27 @@
 
+name: Build Android APK
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y python3-pip build-essential git zip unzip \
+              openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev \
+              libncurses5-dev libffi-dev libssl-dev ccache
+          pip3 install buildozer cython==0.29.33
+      
+      - name: Build APK
+        run: buildozer android debug
+      
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: bouncegame-apk
+          path: bin/*.apk
